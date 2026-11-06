@@ -85,40 +85,55 @@
   .premium-box strong { color: var(--sky); }
 
   footer { text-align: center; padding: 2rem; color: var(--gray); font-size: 0.8rem; }
+  .hdr-right { display: flex; align-items: center; gap: 0.75rem; }
+  .wallet-btn { background: white; color: var(--sky); border: none; padding: 0.45rem 1rem; border-radius: 20px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .wallet-btn:disabled { opacity: 0.6; cursor: wait; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-red { background: var(--red); }
+  .muted { font-size: 0.85rem; color: var(--gray); }
+  .empty { text-align: center; padding: 1.5rem; color: var(--gray); font-size: 0.85rem; }
+  .warn { background: #fef9c3; border: 1px solid #fde68a; color: #92400e; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; margin-bottom: 1rem; }
+  #toast { position: fixed; bottom: 20px; right: 20px; max-width: 340px; background: var(--navy); color: white; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.85rem; opacity: 0; transform: translateY(8px); transition: all 0.2s; pointer-events: none; z-index: 99; }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.err { background: var(--red); }
+  #toast.ok { background: var(--green); }
 </style>
 </head>
 <body>
 
 <header>
   <h1>🛡️ CropVault</h1>
-  <span class="tag-hdr">Botchain Insurance</span>
+  <div class="hdr-right">
+    <span class="tag-hdr" id="netTag">BOT Chain · 677</span>
+    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
+  </div>
 </header>
 
 <div class="hero">
   <h2>Parametric Crop Insurance for Every Farmer</h2>
-  <p>Purchase on-chain coverage against drought, floods, frost, and pests. Payouts are transparent, fast, and trustless on Botchain.</p>
+  <p>Purchase on-chain coverage against drought, floods, frost, and pests. Premiums and payouts settle in BOT on Botchain.</p>
   <div class="pills">
-    <span class="pill">⚡ Instant Payouts</span>
-    <span class="pill">🌐 Trustless Assessors</span>
+    <span class="pill">⚡ Paid on Approval</span>
+    <span class="pill">🧑‍⚖️ Assessor-Reviewed Claims</span>
     <span class="pill">📊 Community-Staked Pool</span>
     <span class="pill">🔗 IPFS Evidence</span>
   </div>
 </div>
 
 <div class="stats-row">
-  <div class="stat"><div class="v">230 BOT</div><div class="l">Vault Staked</div></div>
-  <div class="stat"><div class="v">189</div><div class="l">Active Policies</div></div>
-  <div class="stat"><div class="v">43</div><div class="l">Claims Paid</div></div>
-  <div class="stat"><div class="v">96%</div><div class="l">Approval Rate</div></div>
-  <div class="stat"><div class="v">8.2%</div><div class="l">Staker APY</div></div>
+  <div class="stat"><div class="v" id="stStaked">–</div><div class="l">Vault Staked</div></div>
+  <div class="stat"><div class="v" id="stPolicies">–</div><div class="l">Policies Issued</div></div>
+  <div class="stat"><div class="v" id="stPaid">–</div><div class="l">Claims Paid</div></div>
+  <div class="stat"><div class="v" id="stApproval">–</div><div class="l">Approval Rate</div></div>
+  <div class="stat"><div class="v" id="stLiability">–</div><div class="l">Coverage Liability</div></div>
 </div>
 
 <nav>
-  <button class="active" onclick="showSection('buy')">🛒 Buy Policy</button>
-  <button onclick="showSection('mypolicies')">📋 My Policies</button>
-  <button onclick="showSection('claims')">📝 File Claim</button>
-  <button onclick="showSection('vault')">🏦 Vault / Stake</button>
-  <button onclick="showSection('oracle')">🌦️ Weather Events</button>
+  <button class="active" onclick="showSection('buy', this)">🛒 Buy Policy</button>
+  <button onclick="showSection('mypolicies', this)">📋 My Policies</button>
+  <button onclick="showSection('claims', this)">📝 File Claim</button>
+  <button onclick="showSection('vault', this)">🏦 Vault / Stake</button>
+  <button onclick="showSection('oracle', this)">🌦️ Weather Events</button>
 </nav>
 
 <div class="container">
@@ -133,42 +148,43 @@
         <div class="cov-card selected" onclick="selectCoverage(this,'Drought')">
           <div class="icon">☀️</div>
           <div class="name">Drought</div>
-          <div class="rate">3% annual premium</div>
+          <div class="rate" data-type="Drought">3% annual premium</div>
         </div>
         <div class="cov-card" onclick="selectCoverage(this,'Flood')">
           <div class="icon">🌊</div>
           <div class="name">Flood</div>
-          <div class="rate">2.5% annual premium</div>
+          <div class="rate" data-type="Flood">2.5% annual premium</div>
         </div>
         <div class="cov-card" onclick="selectCoverage(this,'Frost')">
           <div class="icon">❄️</div>
           <div class="name">Frost</div>
-          <div class="rate">2% annual premium</div>
+          <div class="rate" data-type="Frost">2% annual premium</div>
         </div>
         <div class="cov-card" onclick="selectCoverage(this,'Pest')">
           <div class="icon">🐛</div>
           <div class="name">Pest</div>
-          <div class="rate">1.5% annual premium</div>
+          <div class="rate" data-type="Pest">1.5% annual premium</div>
         </div>
         <div class="cov-card" onclick="selectCoverage(this,'Comprehensive')">
           <div class="icon">🛡️</div>
           <div class="name">Comprehensive</div>
-          <div class="rate">6% annual premium</div>
+          <div class="rate" data-type="Comprehensive">6% annual premium</div>
         </div>
       </div>
 
       <div class="form-row">
-        <label>Crop Type <input id="bCrop" placeholder="e.g. Maize" oninput="calcPremium()" /></label>
+        <label>Crop Type <input id="bCrop" placeholder="e.g. Maize" /></label>
         <label>Farm Location <input id="bLoc" placeholder="e.g. Kaduna State" /></label>
       </div>
       <div class="form-row">
-        <label>Declared Crop Value (BOT) <input id="bVal" type="number" placeholder="100" oninput="calcPremium()" /></label>
-        <label>Coverage Duration (days) <input id="bDur" type="number" placeholder="90" oninput="calcPremium()" /></label>
+        <label>Declared Crop Value (BOT) <input id="bVal" type="number" min="0" step="any" placeholder="100" oninput="calcPremium()" /></label>
+        <label>Coverage Duration (days, 30–365) <input id="bDur" type="number" min="30" max="365" placeholder="90" oninput="calcPremium()" /></label>
       </div>
       <div class="premium-box" id="premiumBox">
-        Estimated Premium: <strong id="premiumAmt">–</strong> BOT &nbsp;|&nbsp; Coverage: <strong id="coverageAmt">–</strong> BOT (80% of crop value)
+        Premium: <strong id="premiumAmt">–</strong> BOT &nbsp;|&nbsp; Coverage: <strong id="coverageAmt">–</strong> BOT (80% of crop value)
       </div>
-      <button class="btn" onclick="buyPolicy()">Purchase Policy on Botchain</button>
+      <div class="muted" id="capacityNote" style="margin-bottom:1rem"></div>
+      <button class="btn" id="buyBtn" onclick="buyPolicy()">Purchase Policy on Botchain</button>
     </div>
   </div>
 
@@ -176,27 +192,7 @@
   <div id="mypolicies" class="section">
     <div class="card">
       <h3>📋 My Insurance Policies</h3>
-      <div class="policy-card">
-        <span class="badge badge-active">Active</span>
-        <h4>🌽 Maize – Drought Coverage</h4>
-        <p>📍 Kaduna State · Started Oct 1, 2026</p>
-        <p>💰 Crop Value: 200 BOT · Premium Paid: 1.48 BOT</p>
-        <p>🛡️ Max Payout: 160 BOT · Expires Dec 30, 2026</p>
-        <div class="policy-row">
-          <span style="font-size:0.8rem;color:var(--gray)">Policy #12</span>
-          <button class="btn btn-orange" onclick="showSection('claims')">File a Claim</button>
-        </div>
-      </div>
-      <div class="policy-card">
-        <span class="badge badge-paid">Paid Out</span>
-        <h4>🍅 Tomato – Flood Coverage</h4>
-        <p>📍 Lagos, Nigeria · Aug 15 – Nov 15, 2026</p>
-        <p>💰 Crop Value: 80 BOT · Paid Out: 64 BOT</p>
-        <div class="policy-row">
-          <span style="font-size:0.8rem;color:var(--gray)">Policy #7</span>
-          <button class="btn btn-outline">View Claim #4</button>
-        </div>
-      </div>
+      <div id="policyList"><div class="empty">Connect your wallet to see your policies.</div></div>
     </div>
   </div>
 
@@ -205,8 +201,8 @@
     <div class="card">
       <h3>📝 File a Claim</h3>
       <div class="form-row">
-        <label>Policy ID <input id="cPolicy" type="number" placeholder="12" /></label>
-        <label>Requested Amount (BOT) <input id="cAmt" type="number" placeholder="80" /></label>
+        <label>Policy ID <input id="cPolicy" type="number" min="1" placeholder="12" /></label>
+        <label>Requested Amount (BOT) <input id="cAmt" type="number" min="0" step="any" placeholder="80" /></label>
       </div>
       <div class="form-row">
         <label style="flex:2">Description of Loss
@@ -216,91 +212,118 @@
       <div class="form-row">
         <label>Evidence IPFS Hash (CID) <input id="cEvidence" placeholder="QmXyz…" /></label>
       </div>
-      <p style="font-size:0.8rem;color:var(--gray);margin-bottom:1rem">Upload photos and sensor readings to IPFS and paste the CID above. An assessor will review within 48 hours.</p>
-      <button class="btn btn-orange" onclick="fileClaim()">Submit Claim on Botchain</button>
+      <p style="font-size:0.8rem;color:var(--gray);margin-bottom:1rem">Upload photos and sensor readings to IPFS and paste the CID above. An assessor reviews each claim; approved claims are paid in the same transaction.</p>
+      <button class="btn btn-orange" id="claimBtn" onclick="fileClaim()">Submit Claim on Botchain</button>
     </div>
 
     <div class="card">
       <h3>📂 My Claims</h3>
-      <div class="policy-card">
-        <span class="badge badge-pending">Pending Review</span>
-        <h4>Claim #8 – Policy #12 (Maize Drought)</h4>
-        <p>🗓️ Filed: Nov 1, 2026 · Requested: 80 BOT</p>
-        <p>📎 Evidence: QmAbc123… (IPFS)</p>
-      </div>
-      <div class="policy-card">
-        <span class="badge badge-paid">Paid</span>
-        <h4>Claim #4 – Policy #7 (Tomato Flood)</h4>
-        <p>🗓️ Filed: Oct 10, 2026 · Paid: 64 BOT</p>
-        <p>✅ Approved by: Assessor 0x9a2f…</p>
-      </div>
+      <div id="claimList"><div class="empty">Connect your wallet to see your claims.</div></div>
+    </div>
+
+    <div class="card" id="assessorCard" style="display:none">
+      <h3>🧑‍⚖️ Pending Claims (Assessor)</h3>
+      <div id="assessorList"></div>
     </div>
   </div>
 
   <!-- Vault / Stake -->
   <div id="vault" class="section">
     <div class="vault-info">
-      <div class="vi"><div class="v">230 BOT</div><div class="l">Total Staked</div></div>
-      <div class="vi"><div class="v">18.4 BOT</div><div class="l">Premiums Earned</div></div>
-      <div class="vi"><div class="v">8.2% APY</div><div class="l">Current Yield</div></div>
+      <div class="vi"><div class="v" id="vStaked">–</div><div class="l">Total Staked</div></div>
+      <div class="vi"><div class="v" id="vPool">–</div><div class="l">Premium Pool</div></div>
+      <div class="vi"><div class="v" id="vBalance">–</div><div class="l">Contract Balance</div></div>
     </div>
     <div class="card">
       <h3>🏦 Stake BOT to Back the Vault</h3>
-      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem">Stakers earn 70% of all premiums. 7-day minimum lock period. Vault may be used to pay approved claims.</p>
+      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem">Stakers earn 70% of premiums. 7-day lock that restarts on every new stake. Staked BOT can be used to pay approved claims.</p>
       <div class="form-row">
-        <label>Stake Amount (BOT) <input id="sAmt" type="number" placeholder="20" /></label>
+        <label>Stake Amount (BOT) <input id="sAmt" type="number" min="0" step="any" placeholder="20" /></label>
       </div>
-      <button class="btn btn-green" onclick="stakeBOT()">Stake BOT</button>
+      <button class="btn btn-green" id="stakeBtn" onclick="stakeBOT()">Stake BOT</button>
     </div>
     <div class="card">
       <h3>📤 Unstake</h3>
-      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem">Your stake: <strong>25 BOT</strong> · Pending rewards: <strong>0.34 BOT</strong></p>
+      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem">Your stake: <strong id="myStake">–</strong> BOT · Pending rewards: <strong id="myRewards">–</strong> BOT<br><span id="myUnlock"></span></p>
       <div class="form-row">
-        <label>Unstake Amount (BOT) <input id="uAmt" type="number" placeholder="10" /></label>
+        <label>Unstake Amount (BOT) <input id="uAmt" type="number" min="0" step="any" placeholder="10" /></label>
       </div>
-      <button class="btn btn-outline" onclick="unstakeBOT()">Unstake + Claim Rewards</button>
+      <button class="btn btn-outline" id="unstakeBtn" onclick="unstakeBOT()">Unstake + Claim Rewards</button>
     </div>
   </div>
 
   <!-- Weather Oracle -->
   <div id="oracle" class="section">
     <div class="card">
-      <h3>🌦️ Live Weather Events (Oracle Feed)</h3>
-      <div style="font-size:0.8rem;color:var(--gray);margin-bottom:1rem">Events emitted on-chain via CropVault oracle. Farmers in affected regions can file claims.</div>
-      <div class="policy-card">
-        <span class="badge badge-rejected" style="background:#fee2e2;color:var(--red)">Severe</span>
-        <h4>🌊 Flash Flood – Kano State</h4>
-        <p>🕐 Oct 31, 2026 17:42 UTC · Severity: 85/100</p>
-        <p>📡 Source: Botchain Weather Oracle v2</p>
-      </div>
-      <div class="policy-card">
-        <span class="badge badge-pending">Moderate</span>
-        <h4>☀️ Drought Alert – Oyo State</h4>
-        <p>🕐 Oct 25, 2026 09:00 UTC · Severity: 58/100</p>
-        <p>📡 Source: Botchain Weather Oracle v2</p>
-      </div>
-      <div class="policy-card">
-        <span class="badge badge-active">Mild</span>
-        <h4>🐛 Pest Outbreak – Benue State</h4>
-        <p>🕐 Oct 20, 2026 12:00 UTC · Severity: 30/100</p>
-        <p>📡 Source: AgriMonitor Node</p>
-      </div>
+      <h3>🌦️ Weather Events (On-chain)</h3>
+      <div style="font-size:0.8rem;color:var(--gray);margin-bottom:1rem">Events reported to the CropVault contract by its owner. Farmers in affected regions can file claims.</div>
+      <div id="eventList"><div class="empty">Loading…</div></div>
     </div>
   </div>
 
 </div>
 
-<footer>CropVault is deployed on Botchain · 0xCropVault… · Community-governed insurance protocol</footer>
+<footer>CropVault on BOT Chain mainnet · <a id="contractLink" target="_blank" rel="noopener" style="color:inherit"></a></footer>
 
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
 <script>
-  const rates = { Drought: 0.03, Flood: 0.025, Frost: 0.02, Pest: 0.015, Comprehensive: 0.06 };
-  let selectedCoverage = 'Drought';
+  // ── Config (BOT Chain mainnet) ─────────────────────────────────────────────
+  const CONTRACT_ADDRESS = '0xa373fcbFBe07609011f2571A279Db8fCA63a61b2';
+  const CHAIN_ID = 677;
+  const EXPLORER = 'https://scan.botchain.ai';
+  const BOT_CHAIN = {
+    chainId: '0x2a5', chainName: 'BOT Chain Mainnet',
+    nativeCurrency: { name: 'BOT', symbol: 'BOT', decimals: 18 },
+    rpcUrls: ['https://rpc.botchain.ai'], blockExplorerUrls: [EXPLORER]
+  };
 
-  function showSection(id) {
+  const ABI = [
+    'function owner() view returns (address)',
+    'function policyCounter() view returns (uint256)',
+    'function claimCounter() view returns (uint256)',
+    'function totalStaked() view returns (uint256)',
+    'function totalCoverage() view returns (uint256)',
+    'function premiumPoolBalance() view returns (uint256)',
+    'function premiumRateBps(uint8) view returns (uint256)',
+    'function assessors(address) view returns (bool)',
+    'function stakers(address) view returns (uint256 amountStaked, uint256 rewardDebt, uint256 stakeTime)',
+    'function calculatePremium(uint8 _type, uint256 _cropValueWei, uint256 _durationDays) view returns (uint256)',
+    'function purchasePolicy(uint8 _coverageType, uint256 _cropValueWei, uint256 _durationDays, string _farmLocation, string _cropType) payable returns (uint256)',
+    'function fileClaim(uint256 _policyId, string _description, string _evidenceHash, uint256 _requestedAmount) returns (uint256)',
+    'function assessClaim(uint256 _claimId, bool _approve, string _notes)',
+    'function stake() payable',
+    'function unstake(uint256 _amount)',
+    'function pendingStakerReward(address _staker) view returns (uint256)',
+    'function getPolicy(uint256 _id) view returns ((uint256 id, address farmer, uint8 coverageType, uint256 cropValueWei, uint256 premiumPaid, uint256 coverageAmount, uint256 startDate, uint256 endDate, string farmLocation, string cropType, uint8 status))',
+    'function getClaim(uint256 _id) view returns ((uint256 id, uint256 policyId, address farmer, string description, string evidenceHash, uint256 filedAt, uint256 requestedAmount, uint8 status, address assessedBy, string assessorNotes))',
+    'function getFarmerPolicies(address _f) view returns (uint256[])',
+    'event OracleEvent(string eventType, string location, uint256 severity)'
+  ];
+
+  const COVERAGE = ['Drought', 'Flood', 'Frost', 'Pest', 'Comprehensive'];
+  const COVERAGE_ICON = { Drought: '☀️', Flood: '🌊', Frost: '❄️', Pest: '🐛', Comprehensive: '🛡️' };
+  const POLICY_STATUS = ['Active', 'Expired', 'Claimed'];
+  const CLAIM_STATUS = ['Pending', 'Approved', 'Rejected', 'Paid'];
+
+  const readProvider = new ethers.JsonRpcProvider(BOT_CHAIN.rpcUrls[0], CHAIN_ID, { staticNetwork: ethers.Network.from(CHAIN_ID) });
+  const vault = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+
+  let account = null;
+  let selectedCoverage = 'Drought';
+  let isAssessor = false;
+  let allClaims = [];
+  let txBusy = false;
+  let premiumTimer = null;
+
+  // ── UI helpers ─────────────────────────────────────────────────────────────
+  function showSection(id, btn) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+    (btn || document.querySelector(`nav button[onclick*="'${id}'"]`))?.classList.add('active');
+    if (id === 'oracle') loadEvents();
   }
 
   function selectCoverage(el, type) {
@@ -310,20 +333,372 @@
     calcPremium();
   }
 
-  function calcPremium() {
-    const val = parseFloat(document.getElementById('bVal').value) || 0;
-    const dur = parseFloat(document.getElementById('bDur').value) || 0;
-    const rate = rates[selectedCoverage] || 0.03;
-    const premium = ((val * rate) * dur / 365).toFixed(4);
-    const coverage = (val * 0.8).toFixed(2);
-    document.getElementById('premiumAmt').textContent = val ? premium : '–';
-    document.getElementById('coverageAmt').textContent = val ? coverage : '–';
+  const fmt = (wei, dp = 4) => {
+    const [i, f = ''] = ethers.formatEther(wei).split('.');
+    const d = f.slice(0, dp).replace(/0+$/, '');
+    return BigInt(i).toLocaleString('en-US') + (d ? '.' + d : '');
+  };
+  const short = a => a ? a.slice(0, 6) + '…' + a.slice(-4) : '';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const date = ts => new Date(Number(ts) * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const errText = e => (e && (e.shortMessage || e.reason || e.info?.error?.message || e.data?.message || e.message)) || String(e);
+  function cleanRevert(e) {
+    const m = errText(e);
+    const r = m.match(/reverted(?: with reason string)?:?\s*"?([^"\n]+)"?/i);
+    return r ? r[1].trim() : m;
+  }
+  function evidenceLink(cid) {
+    if (!cid) return '—';
+    if (/^(Qm[1-9A-HJ-NP-Za-km-z]{44}|bafy[a-z2-7]+)$/.test(cid)) {
+      return `<a href="https://ipfs.io/ipfs/${cid}" target="_blank" rel="noopener">${esc(cid.slice(0, 12))}…</a> (IPFS)`;
+    }
+    return esc(cid);
   }
 
-  function buyPolicy()   { alert(`✅ Purchasing ${selectedCoverage} policy on Botchain!\nTransaction submitted to CropVault contract.`); }
-  function fileClaim()   { alert('📝 Claim submitted to Botchain! An assessor will review within 48 hours.'); }
-  function stakeBOT()    { alert('🏦 BOT staked to CropVault vault on Botchain!'); }
-  function unstakeBOT()  { alert('📤 Unstake + rewards withdrawal submitted to Botchain!'); }
+  let toastTimer;
+  function toast(msg, type = '') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = '', type === 'err' ? 7000 : 3500);
+  }
+
+  function withTimeout(p, ms, msg) {
+    return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
+  }
+
+  async function busy(btnId, fn) {
+    const btn = document.getElementById(btnId);
+    if (btn) btn.disabled = true;
+    try { await fn(); } catch (e) { toast(errText(e), 'err'); }
+    finally { if (btn) btn.disabled = false; }
+  }
+
+  // ── Wallet ─────────────────────────────────────────────────────────────────
+  async function connectWallet(silent = false) {
+    if (!window.ethereum) { if (!silent) toast('No wallet detected. Install MetaMask or a compatible wallet.', 'err'); return; }
+    const btn = document.getElementById('walletBtn');
+    try {
+      if (!silent) btn.disabled = true;
+      const accounts = await withTimeout(
+        window.ethereum.request({ method: silent ? 'eth_accounts' : 'eth_requestAccounts' }),
+        silent ? 5000 : 60000,
+        'Wallet did not respond. Open MetaMask from the toolbar and clear pending requests.'
+      );
+      if (!accounts || !accounts.length) return;
+      account = ethers.getAddress(accounts[0]);
+      btn.textContent = short(account);
+      if (window.ethereum.on) window.ethereum.on('accountsChanged', () => location.reload());
+      await refreshAll();
+      if (!silent) {
+        toast('Wallet connected ✓', 'ok');
+        withTimeout(ensureChain(), 60000, 'switch').catch(() => toast('Switch MetaMask to BOT Chain (677) before sending transactions', 'err'));
+      }
+    } catch (e) {
+      if (!silent) toast(errText(e), 'err');
+    } finally { btn.disabled = false; }
+  }
+
+  async function ensureChain() {
+    const id = parseInt(await window.ethereum.request({ method: 'eth_chainId' }), 16);
+    if (id === CHAIN_ID) return;
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BOT_CHAIN.chainId }] });
+    } catch (e) {
+      if (e.code === 4902 || e.code === -32603 || /unrecognized|not been added/i.test(e.message || '')) {
+        await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [BOT_CHAIN] });
+      } else throw e;
+    }
+  }
+
+  // Estimate on our own RPC (reverts show the contract's message), then send a complete tx to the wallet
+  async function sendTx(fn, args = [], value = 0n) {
+    if (!account) throw new Error('Connect your wallet first');
+    if (txBusy) throw new Error('Another transaction is still pending');
+    txBusy = true;
+    try {
+      await withTimeout(ensureChain(), 60000, 'Approve the switch to BOT Chain in MetaMask');
+      const data = vault.interface.encodeFunctionData(fn, args);
+      let gas;
+      try { gas = await readProvider.estimateGas({ from: account, to: CONTRACT_ADDRESS, data, value }); }
+      catch (e) { throw new Error(cleanRevert(e)); }
+      toast('Confirm in your wallet…');
+      const hash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: account, to: CONTRACT_ADDRESS, data, value: ethers.toQuantity(value), gas: ethers.toQuantity(gas * 12n / 10n) }]
+      });
+      toast('Sent. Waiting for confirmation…');
+      const r = await readProvider.waitForTransaction(hash, 1, 180000);
+      if (!r) throw new Error('Not confirmed within 3 minutes. Check ' + EXPLORER + '/tx/' + hash);
+      if (r.status !== 1) throw new Error('Transaction reverted');
+      return hash;
+    } finally { txBusy = false; }
+  }
+
+  // ── Loading ────────────────────────────────────────────────────────────────
+  async function refreshAll() {
+    await Promise.all([loadStats(), loadRates(), loadClaims()]);
+    await Promise.all([loadPolicies(), loadMyStake()]);
+    renderClaims();
+    calcPremium();
+  }
+
+  async function loadStats() {
+    try {
+      const [staked, liability, pool, bal, pCount] = await Promise.all([
+        vault.totalStaked(), vault.totalCoverage(), vault.premiumPoolBalance(),
+        readProvider.getBalance(CONTRACT_ADDRESS), vault.policyCounter()
+      ]);
+      document.getElementById('stStaked').textContent = fmt(staked, 2) + ' BOT';
+      document.getElementById('stLiability').textContent = fmt(liability, 2) + ' BOT';
+      document.getElementById('stPolicies').textContent = Number(pCount);
+      document.getElementById('vStaked').textContent = fmt(staked, 2) + ' BOT';
+      document.getElementById('vPool').textContent = fmt(pool, 2) + ' BOT';
+      document.getElementById('vBalance').textContent = fmt(bal, 2) + ' BOT';
+      // The contract only issues a policy while staked + pool covers all liability
+      const free = staked + pool - liability;
+      document.getElementById('capacityNote').textContent =
+        `Vault capacity for new coverage: ${fmt(free > 0n ? free : 0n, 2)} BOT. Policies beyond this are rejected until more BOT is staked.`;
+    } catch (e) {
+      document.getElementById('capacityNote').textContent = 'Could not reach BOT Chain: ' + errText(e);
+    }
+  }
+
+  async function loadRates() {
+    try {
+      const rates = await Promise.all(COVERAGE.map((_, i) => vault.premiumRateBps(i)));
+      rates.forEach((bps, i) => {
+        const el = document.querySelector(`.rate[data-type="${COVERAGE[i]}"]`);
+        if (el) el.textContent = `${Number(bps) / 100}% annual premium`;
+      });
+    } catch {}
+  }
+
+  async function loadClaims() {
+    try {
+      const n = Number(await vault.claimCounter());
+      const ids = Array.from({ length: n }, (_, i) => i + 1);
+      allClaims = await Promise.all(ids.map(id => vault.getClaim(id)));
+      const paid = allClaims.filter(c => Number(c.status) === 3).length;
+      const rejected = allClaims.filter(c => Number(c.status) === 2).length;
+      document.getElementById('stPaid').textContent = paid;
+      document.getElementById('stApproval').textContent = (paid + rejected) ? Math.round(paid * 100 / (paid + rejected)) + '%' : '–';
+    } catch (e) { allClaims = []; }
+  }
+
+  async function loadPolicies() {
+    const box = document.getElementById('policyList');
+    if (!account) return;
+    try {
+      const ids = Array.from(await vault.getFarmerPolicies(account));
+      if (!ids.length) { box.innerHTML = '<div class="empty">No policies yet. Buy one from the Buy Policy tab.</div>'; return; }
+      const policies = await Promise.all(ids.map(id => vault.getPolicy(id)));
+      const now = Date.now() / 1000;
+      box.innerHTML = policies.reverse().map(p => {
+        const type = COVERAGE[Number(p.coverageType)];
+        let status = POLICY_STATUS[Number(p.status)];
+        if (status === 'Active' && now > Number(p.endDate)) status = 'Expired';
+        const badge = status === 'Active' ? 'badge-active' : status === 'Claimed' ? 'badge-paid' : 'badge-rejected';
+        const claim = allClaims.filter(c => Number(c.policyId) === Number(p.id)).pop();
+        return `<div class="policy-card">
+          <span class="badge ${badge}">${status}</span>
+          <h4>${COVERAGE_ICON[type]} ${esc(p.cropType || 'Crop')} – ${type} Coverage</h4>
+          <p>📍 ${esc(p.farmLocation || '—')} · ${date(p.startDate)} – ${date(p.endDate)}</p>
+          <p>💰 Crop Value: ${fmt(p.cropValueWei)} BOT · Premium Paid: ${fmt(p.premiumPaid)} BOT</p>
+          <p>🛡️ Max Payout: ${fmt(p.coverageAmount)} BOT${claim ? ` · Latest claim #${claim.id}: ${CLAIM_STATUS[Number(claim.status)]}` : ''}</p>
+          <div class="policy-row">
+            <span style="font-size:0.8rem;color:var(--gray)">Policy #${p.id}</span>
+            ${status === 'Active' ? `<button class="btn btn-orange" onclick="startClaim(${p.id}, '${ethers.formatEther(p.coverageAmount)}')">File a Claim</button>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    } catch (e) { box.innerHTML = `<div class="empty">Could not load policies: ${esc(errText(e))}</div>`; }
+  }
+
+  function renderClaims() {
+    const mine = account ? allClaims.filter(c => c.farmer.toLowerCase() === account.toLowerCase()) : [];
+    const claimBox = document.getElementById('claimList');
+    if (account) {
+      claimBox.innerHTML = mine.length ? mine.slice().reverse().map(c => claimCard(c, false)).join('')
+        : '<div class="empty">No claims filed yet.</div>';
+    }
+    const card = document.getElementById('assessorCard');
+    card.style.display = isAssessor ? 'block' : 'none';
+    if (isAssessor) {
+      const pending = allClaims.filter(c => Number(c.status) === 0);
+      document.getElementById('assessorList').innerHTML = pending.length
+        ? pending.map(c => claimCard(c, true)).join('') : '<div class="empty">No claims waiting for review.</div>';
+    }
+  }
+
+  function claimCard(c, review) {
+    const status = CLAIM_STATUS[Number(c.status)];
+    const badge = { Pending: 'badge-pending', Approved: 'badge-active', Rejected: 'badge-rejected', Paid: 'badge-paid' }[status];
+    return `<div class="policy-card">
+      <span class="badge ${badge}">${status === 'Pending' ? 'Pending Review' : status}</span>
+      <h4>Claim #${c.id} – Policy #${c.policyId}</h4>
+      <p>🗓️ Filed: ${date(c.filedAt)} · Requested: ${fmt(c.requestedAmount)} BOT${review ? ' · Farmer: ' + short(c.farmer) : ''}</p>
+      <p>📝 ${esc(c.description || '—')}</p>
+      <p>📎 Evidence: ${evidenceLink(c.evidenceHash)}</p>
+      ${c.assessedBy !== ethers.ZeroAddress ? `<p>🧑‍⚖️ Assessed by ${short(c.assessedBy)}${c.assessorNotes ? ': ' + esc(c.assessorNotes) : ''}</p>` : ''}
+      ${review ? `<div class="policy-row">
+        <input id="note-${c.id}" placeholder="Notes for the farmer" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:0.45rem 0.7rem">
+        <button class="btn btn-green" onclick="assess(${c.id}, true)">Approve & Pay</button>
+        <button class="btn btn-red" onclick="assess(${c.id}, false)">Reject</button>
+      </div>` : ''}
+    </div>`;
+  }
+
+  async function loadMyStake() {
+    if (!account) return;
+    try {
+      const [owner, assessor, s, rewards] = await Promise.all([
+        vault.owner(), vault.assessors(account), vault.stakers(account), vault.pendingStakerReward(account)
+      ]);
+      isAssessor = assessor || owner.toLowerCase() === account.toLowerCase();
+      document.getElementById('myStake').textContent = fmt(s.amountStaked);
+      document.getElementById('myRewards').textContent = fmt(rewards, 6);
+      const unlock = Number(s.stakeTime) + 7 * 86400;
+      document.getElementById('myUnlock').textContent = s.amountStaked > 0n
+        ? (Date.now() / 1000 >= unlock ? 'Unlocked — you can unstake now.' : 'Locked until ' + new Date(unlock * 1000).toLocaleString())
+        : '';
+    } catch {}
+  }
+
+  async function loadEvents() {
+    const box = document.getElementById('eventList');
+    try {
+      const latest = await readProvider.getBlockNumber();
+      let logs;
+      try { logs = await vault.queryFilter('OracleEvent', 0, latest); }
+      catch { logs = await vault.queryFilter('OracleEvent', Math.max(0, latest - 50000), latest); } // RPC range limit fallback
+      if (!logs.length) { box.innerHTML = '<div class="empty">No weather events reported yet.</div>'; return; }
+      const blocks = await Promise.all(logs.map(l => l.getBlock()));
+      box.innerHTML = logs.map((l, i) => {
+        const sev = Number(l.args.severity);
+        const [label, cls] = sev >= 70 ? ['Severe', 'badge-rejected'] : sev >= 40 ? ['Moderate', 'badge-pending'] : ['Mild', 'badge-active'];
+        return `<div class="policy-card">
+          <span class="badge ${cls}">${label}</span>
+          <h4>${esc(l.args.eventType)} – ${esc(l.args.location)}</h4>
+          <p>🕐 ${new Date(blocks[i].timestamp * 1000).toUTCString()} · Severity: ${sev}/100</p>
+          <p>📡 <a href="${EXPLORER}/tx/${l.transactionHash}" target="_blank" rel="noopener">View on BOTScan</a></p>
+        </div>`;
+      }).reverse().join('');
+    } catch (e) { box.innerHTML = `<div class="empty">Could not load events: ${esc(errText(e))}</div>`; }
+  }
+
+  // ── Buy ────────────────────────────────────────────────────────────────────
+  function readBuyInputs() {
+    const v = document.getElementById('bVal').value.trim();
+    const d = parseInt(document.getElementById('bDur').value);
+    if (!v || !(parseFloat(v) > 0)) return null;
+    return { valueWei: ethers.parseEther(v), days: d, type: COVERAGE.indexOf(selectedCoverage) };
+  }
+
+  // Premium is read from the contract so the UI always matches what it will charge
+  function calcPremium() {
+    clearTimeout(premiumTimer);
+    premiumTimer = setTimeout(async () => {
+      let inp; try { inp = readBuyInputs(); } catch { inp = null; }
+      if (!inp) { premiumAmt.textContent = '–'; coverageAmt.textContent = '–'; return; }
+      coverageAmt.textContent = fmt(inp.valueWei * 80n / 100n);
+      if (!(inp.days >= 30 && inp.days <= 365)) { premiumAmt.textContent = '–'; return; }
+      try { premiumAmt.textContent = fmt(await vault.calculatePremium(inp.type, inp.valueWei, inp.days), 6); }
+      catch { premiumAmt.textContent = '–'; }
+    }, 250);
+  }
+
+  function buyPolicy() {
+    busy('buyBtn', async () => {
+      const inp = readBuyInputs();
+      if (!inp) throw new Error('Enter the declared crop value');
+      if (!(inp.days >= 30 && inp.days <= 365)) throw new Error('Duration must be 30–365 days');
+      const crop = document.getElementById('bCrop').value.trim();
+      const loc = document.getElementById('bLoc').value.trim();
+      if (!crop || !loc) throw new Error('Enter crop type and farm location');
+      // Send exactly the premium: the deployed contract books any excess as premium before refunding it
+      const premium = await vault.calculatePremium(inp.type, inp.valueWei, inp.days);
+      if (premium === 0n) throw new Error('Premium rounds to zero; increase the crop value');
+      await sendTx('purchasePolicy', [inp.type, inp.valueWei, inp.days, loc, crop], premium);
+      toast('Policy purchased ✓', 'ok');
+      ['bCrop', 'bLoc', 'bVal', 'bDur'].forEach(id => document.getElementById(id).value = '');
+      await refreshAll();
+      showSection('mypolicies');
+    });
+  }
+
+  // ── Claims ─────────────────────────────────────────────────────────────────
+  function startClaim(policyId, maxBot) {
+    document.getElementById('cPolicy').value = policyId;
+    document.getElementById('cAmt').placeholder = 'max ' + maxBot;
+    showSection('claims');
+  }
+
+  function fileClaim() {
+    busy('claimBtn', async () => {
+      const id = parseInt(document.getElementById('cPolicy').value);
+      const amt = document.getElementById('cAmt').value.trim();
+      const desc = document.getElementById('cDesc').value.trim();
+      const cid = document.getElementById('cEvidence').value.trim();
+      if (!id || !amt || !desc) throw new Error('Enter policy ID, amount and a description');
+      const wei = ethers.parseEther(amt);
+      if (wei <= 0n) throw new Error('Requested amount must be greater than 0');
+      await sendTx('fileClaim', [id, desc, cid, wei]);
+      toast('Claim filed ✓ An assessor will review it.', 'ok');
+      ['cPolicy', 'cAmt', 'cDesc', 'cEvidence'].forEach(x => document.getElementById(x).value = '');
+      await loadClaims(); renderClaims(); loadPolicies();
+    });
+  }
+
+  async function assess(claimId, approve) {
+    const c = allClaims.find(x => Number(x.id) === claimId);
+    if (approve && !confirm(`Approve claim #${claimId} and pay ${fmt(c.requestedAmount)} BOT to ${short(c.farmer)}?`)) return;
+    try {
+      const notes = document.getElementById('note-' + claimId)?.value.trim() || '';
+      await sendTx('assessClaim', [claimId, approve, notes]);
+      toast(approve ? 'Claim approved and paid ✓' : 'Claim rejected', 'ok');
+      await refreshAll();
+    } catch (e) { toast(errText(e), 'err'); }
+  }
+
+  // ── Staking ────────────────────────────────────────────────────────────────
+  function stakeBOT() {
+    busy('stakeBtn', async () => {
+      const v = document.getElementById('sAmt').value.trim();
+      if (!v) throw new Error('Enter an amount');
+      const wei = ethers.parseEther(v);
+      if (wei <= 0n) throw new Error('Amount must be greater than 0');
+      const bal = await readProvider.getBalance(account || ethers.ZeroAddress);
+      if (account && bal < wei) throw new Error('Not enough BOT (keep some for gas)');
+      if (!confirm('Staking restarts your 7-day lock on your whole stake. Continue?')) return;
+      await sendTx('stake', [], wei);
+      toast('Staked ✓', 'ok');
+      document.getElementById('sAmt').value = '';
+      await refreshAll();
+    });
+  }
+
+  function unstakeBOT() {
+    busy('unstakeBtn', async () => {
+      const v = document.getElementById('uAmt').value.trim();
+      if (!v) throw new Error('Enter an amount');
+      await sendTx('unstake', [ethers.parseEther(v)]);
+      toast('Unstaked + rewards sent ✓', 'ok');
+      document.getElementById('uAmt').value = '';
+      await refreshAll();
+    });
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  const premiumAmt = document.getElementById('premiumAmt');
+  const coverageAmt = document.getElementById('coverageAmt');
+  const link = document.getElementById('contractLink');
+  link.href = `${EXPLORER}/address/${CONTRACT_ADDRESS}`;
+  link.textContent = short(CONTRACT_ADDRESS);
+
+  loadStats(); loadRates(); loadClaims();
+  if (window.ethereum) connectWallet(true);
 </script>
 </body>
 </html>
